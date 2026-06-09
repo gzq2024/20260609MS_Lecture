@@ -203,6 +203,36 @@ function redraw() {
   render(vm, elements);
 }
 
+function handleCompletion(now) {
+  _completed = true;
+  scheduler.stop();
+
+  // WORK セッション完了時にAPI保存
+  const wasWork = state === STATES.WORK;
+  const sessionStartedAt = context.endAt - config.workDuration;
+
+  ({ state, context } = nextState(state, EVENTS.COMPLETE, context, now));
+  debugLog("Session completed", { wasWork, state });
+  _completed = false;
+
+  // 状態をlocalStorageに保存
+  saveStateToStorage();
+
+  // WORK セッション完了直後に保存
+  if (wasWork) {
+    saveSession("work", sessionStartedAt, now);
+    loadStats();
+  }
+
+  // 休憩/作業への自動遷移後に再描画
+  redraw();
+
+  // 休憩状態なら自動的にカウントダウン開始
+  if (state === STATES.SHORT_BREAK || state === STATES.LONG_BREAK) {
+    _startCountdown();
+  }
+}
+
 // ----------------------------------------------------------------
 // カウントダウンループ（毎200ms tick）
 // ----------------------------------------------------------------
@@ -214,33 +244,7 @@ function onTick() {
 
   // 0秒到達 → 完了イベントを一度だけ発火
   if (remaining === 0 && !_completed) {
-    _completed = true;
-    scheduler.stop();
-
-    // WORK セッション完了時にAPI保存
-    const wasWork = state === STATES.WORK;
-    const sessionStartedAt = context.endAt - config.workDuration;
-
-    ({ state, context } = nextState(state, EVENTS.COMPLETE, context, now));
-    debugLog("Session completed", { wasWork, state });
-    _completed = false;
-
-    // 状態をlocalStorageに保存
-    saveStateToStorage();
-
-    // WORK セッション完了直後に保存
-    if (wasWork) {
-      saveSession("work", sessionStartedAt, now);
-      loadStats();
-    }
-
-    // 休憩/作業への自動遷移後に再描画
-    redraw();
-
-    // 休憩状態なら自動的にカウントダウン開始
-    if (state === STATES.SHORT_BREAK || state === STATES.LONG_BREAK) {
-      _startCountdown();
-    }
+    handleCompletion(now);
   }
 }
 
@@ -299,7 +303,7 @@ if (savedAppState) {
 if (isRunningState(state) && context.endAt !== null) {
   const remaining = calcRemaining(context.endAt, clock.now(), config);
   if (remaining === 0) {
-    onTick();
+    handleCompletion(clock.now());
   } else {
     _startCountdown();
   }

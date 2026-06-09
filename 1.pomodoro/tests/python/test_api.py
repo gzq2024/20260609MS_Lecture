@@ -176,10 +176,13 @@ class TestCreateSession:
 
         first = client.post("/api/sessions", json=payload)
         second = client.post("/api/sessions", json=payload)
+        third = client.post("/api/sessions", json=payload)
 
         assert first.status_code == 201
         assert second.status_code == 201
+        assert third.status_code == 201
         assert first.get_json()["id"] == second.get_json()["id"]
+        assert first.get_json()["id"] == third.get_json()["id"]
 
         stats = client.get("/api/stats/today").get_json()
         assert stats["completed"] == 1

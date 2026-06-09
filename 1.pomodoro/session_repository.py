@@ -93,7 +93,7 @@ class SqliteSessionRepository(SessionRepository):
         conn.close()
 
         if not row:
-            raise RuntimeError("Failed to save session")
+            raise RuntimeError("Failed to load session right after save; check DB consistency")
         return self._row_to_session(row)
 
     def get_by_id(self, session_id: int) -> Session:
