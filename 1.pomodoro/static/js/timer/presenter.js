@@ -42,8 +42,19 @@ function formatTime(remainingMs) {
  * @param {Element} elements.startBtn
  * @param {Element} elements.resetBtn
  */
+function resolveElements(elements) {
+  if (elements) return elements;
+  return {
+    timerText: document.getElementById("timerText"),
+    ringProgress: document.getElementById("ringProgress"),
+    modeLabel: document.getElementById("modeLabel"),
+    startBtn: document.getElementById("startBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+  };
+}
+
 function render(viewModel, elements) {
-  const { timerText, ringProgress, modeLabel, startBtn, resetBtn } = elements;
+  const { timerText, ringProgress, modeLabel, startBtn, resetBtn } = resolveElements(elements);
 
   // 残り時間テキスト
   timerText.textContent = viewModel.timerText;

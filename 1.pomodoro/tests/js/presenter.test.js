@@ -178,4 +178,28 @@ describe("render", () => {
     expect(parseFloat(els.ringProgress.style.strokeDashoffset))
       .toBeCloseTo(RING_CIRCUMFERENCE / 2, 1);
   });
+
+  test("elements未指定でもIDから要素を取得して描画できる", () => {
+    document.body.innerHTML = `
+      <span id="timerText"></span>
+      <circle id="ringProgress"></circle>
+      <p id="modeLabel"></p>
+      <button id="startBtn"></button>
+      <button id="resetBtn"></button>
+    `;
+
+    render({
+      timerText: "24:59",
+      progressRatio: 0.9,
+      modeLabel: "作業中",
+      startBtnLabel: "開始",
+      startBtnActive: true,
+      resetBtnActive: false,
+    });
+
+    expect(document.getElementById("timerText").textContent).toBe("24:59");
+    expect(document.getElementById("modeLabel").textContent).toBe("作業中");
+    expect(document.getElementById("startBtn").disabled).toBe(false);
+    expect(document.getElementById("resetBtn").disabled).toBe(true);
+  });
 });

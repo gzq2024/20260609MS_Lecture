@@ -200,7 +200,7 @@ function currentDuration() {
 function redraw() {
   const remaining = calcRemaining(context.endAt, clock.now(), config);
   const vm = buildViewModel(state, remaining, currentDuration());
-  render(vm, elements);
+  render(vm);
 }
 
 // ----------------------------------------------------------------
@@ -290,4 +290,3 @@ if (savedAppState) {
 
 redraw();
 loadStats();
-
