@@ -54,6 +54,10 @@ class SqliteSessionRepository(SessionRepository):
                 created_at TEXT NOT NULL
             )
         """)
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_session_unique
+            ON session (session_type, started_at, ended_at, focus_minutes)
+        """)
         conn.commit()
         conn.close()
 
@@ -61,8 +65,17 @@ class SqliteSessionRepository(SessionRepository):
         """セッションを保存"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
+        cursor.execute("""
+            INSERT OR IGNORE INTO session (session_type, started_at, ended_at, focus_minutes, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            session.session_type,
+            session.started_at,
+            session.ended_at,
+            session.focus_minutes,
+            session.created_at.isoformat(),
+        ))
 
-        # 重複保存防止: 同じセッション内容が既に存在する場合は既存レコードを返す
         cursor.execute("""
             SELECT id, session_type, started_at, ended_at, focus_minutes, created_at
             FROM session
@@ -77,27 +90,11 @@ class SqliteSessionRepository(SessionRepository):
             session.ended_at,
             session.focus_minutes,
         ))
-        existing = cursor.fetchone()
-        if existing:
-            conn.close()
-            return self._row_to_session(existing)
-
-        cursor.execute("""
-            INSERT INTO session (session_type, started_at, ended_at, focus_minutes, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            session.session_type,
-            session.started_at,
-            session.ended_at,
-            session.focus_minutes,
-            session.created_at.isoformat(),
-        ))
+        row = cursor.fetchone()
         conn.commit()
-        session_id = cursor.lastrowid
         conn.close()
 
-        session.id = session_id
-        return session
+        return self._row_to_session(row)
 
     def get_by_id(self, session_id: int) -> Session:
         """IDでセッションを取得"""
