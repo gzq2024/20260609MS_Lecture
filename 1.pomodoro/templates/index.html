@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポモドーロタイマー</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="window-card">
+
+    <!-- ヘッダー -->
+    <div class="window-header">
+      <span class="window-title">ポモドーロタイマー</span>
+      <div class="window-controls" aria-hidden="true">
+        <span class="wc-btn">&#8722;</span>
+        <span class="wc-btn">&#9633;</span>
+        <span class="wc-btn">&#215;</span>
+      </div>
+    </div>
+
+    <!-- モード表示 -->
+    <p class="mode-label" id="modeLabel">作業中</p>
+
+    <!-- 円形プログレスリング + 残り時間 -->
+    <div class="timer-ring-wrapper">
+      <svg class="timer-ring" viewBox="0 0 200 200" aria-hidden="true">
+        <!-- トラック（背景リング） -->
+        <circle
+          class="ring-track"
+          cx="100" cy="100" r="80"
+          fill="none"
+          stroke-width="14"
+        />
+        <!-- プログレスリング（残り時間に応じて変化） -->
+        <circle
+          class="ring-progress"
+          id="ringProgress"
+          cx="100" cy="100" r="80"
+          fill="none"
+          stroke-width="14"
+          stroke-linecap="round"
+          transform="rotate(-90 100 100)"
+        />
+      </svg>
+      <div class="timer-display">
+        <span class="timer-text" id="timerText">25:00</span>
+      </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="startBtn" type="button">開始</button>
+      <button class="btn btn-outline" id="resetBtn" type="button">リセット</button>
+    </div>
+
+    <!-- 今日の進捗カード -->
+    <div class="progress-card">
+      <p class="progress-card-title">今日の進捗</p>
+      <div class="progress-stats">
+        <div class="stat">
+          <span class="stat-value" id="completedCount">0</span>
+          <span class="stat-label">完了</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value stat-highlight" id="focusTime">0分</span>
+          <span class="stat-label">集中時間</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
