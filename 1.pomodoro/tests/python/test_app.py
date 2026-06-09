@@ -118,6 +118,10 @@ class TestIndexHtmlStructure:
         """集中時間要素に id="focusTime" が設定されている。"""
         assert 'id="focusTime"' in self.body
 
+    def test_focus_time_fallback_text_is_zero_minutes(self):
+        """集中時間のフォールバック表示が 0分 になっている。"""
+        assert '>0分<' in self.body
+
     # --- 静的ファイル参照 ---
     def test_links_stylesheet(self):
         """CSSファイルへのリンクが含まれる。"""
