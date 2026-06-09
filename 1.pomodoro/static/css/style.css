@@ -1,0 +1,220 @@
+/* ============================================================
+   リセット・ベース
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7b6fd0;
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+}
+
+/* ============================================================
+   ウィンドウカード
+   ============================================================ */
+.window-card {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 320px;
+  padding: 0 0 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+/* ============================================================
+   ウィンドウヘッダー
+   ============================================================ */
+.window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.window-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.wc-btn {
+  font-size: 12px;
+  color: #aaa;
+  cursor: default;
+  user-select: none;
+}
+
+/* ============================================================
+   モード表示
+   ============================================================ */
+.mode-label {
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+  margin-top: 20px;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   タイマーリング
+   ============================================================ */
+.timer-ring-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto 20px;
+  width: 200px;
+  height: 200px;
+}
+
+.timer-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+}
+
+/* トラック（背景の灰色リング） */
+.ring-track {
+  stroke: #e8e8e8;
+}
+
+/* プログレスリング（残時間・青紫） */
+.ring-progress {
+  stroke: #6b7fd4;
+  /* 円周 = 2 * π * 80 ≈ 502.65 */
+  stroke-dasharray: 502.65;
+  stroke-dashoffset: 0; /* Phase 1: 満タン状態（25:00） */
+  transition: stroke-dashoffset 0.5s linear;
+}
+
+/* 残り時間テキスト */
+.timer-display {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.timer-text {
+  font-size: 40px;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   操作ボタン
+   ============================================================ */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  border: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* 開始ボタン（塗りつぶし） */
+.btn-primary {
+  background-color: #6b7fd4;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+/* リセットボタン（アウトライン） */
+.btn-outline {
+  background-color: transparent;
+  color: #555;
+  border: 1.5px solid #ccc;
+}
+
+.btn-outline:hover {
+  background-color: #f5f5f5;
+}
+
+/* ============================================================
+   今日の進捗カード
+   ============================================================ */
+.progress-card {
+  background: #f4f4f8;
+  border-radius: 12px;
+  margin: 0 16px;
+  padding: 14px 20px;
+}
+
+.progress-card-title {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.progress-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1;
+}
+
+.stat-value.stat-highlight {
+  color: #6b7fd4;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #999;
+}
+
+/* ============================================================
+   レスポンシブ（モバイル）
+   ============================================================ */
+@media (max-width: 360px) {
+  .window-card {
+    width: 100%;
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}
