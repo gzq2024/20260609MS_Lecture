@@ -213,4 +213,23 @@ describe("render", () => {
   ])("elementsに不正な型(%p)を渡すとTypeErrorになる", (invalidElements) => {
     expect(() => render({ timerText: "25:00" }, invalidElements)).toThrow(TypeError);
   });
+
+  test("elementsにundefinedを明示指定してもIDから要素を取得して描画できる", () => {
+    document.body.innerHTML = `
+      <span id="timerText"></span>
+      <circle id="ringProgress"></circle>
+      <p id="modeLabel"></p>
+      <button id="startBtn"></button>
+      <button id="resetBtn"></button>
+    `;
+
+    expect(() => render({
+      timerText: "24:58",
+      progressRatio: 0.8,
+      modeLabel: "作業中",
+      startBtnLabel: "開始",
+      startBtnActive: true,
+      resetBtnActive: true,
+    }, undefined)).not.toThrow();
+  });
 });
