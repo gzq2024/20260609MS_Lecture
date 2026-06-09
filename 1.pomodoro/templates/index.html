@@ -54,6 +54,43 @@
       <button class="btn btn-outline" id="resetBtn" type="button">リセット</button>
     </div>
 
+    <!-- 設定 -->
+    <div class="settings-card">
+      <p class="settings-title">カスタマイズ</p>
+      <div class="settings-grid">
+        <label class="setting-item">
+          <span>作業時間</span>
+          <select id="workDurationSelect">
+            <option value="15">15分</option>
+            <option value="25" selected>25分</option>
+            <option value="35">35分</option>
+            <option value="45">45分</option>
+          </select>
+        </label>
+        <label class="setting-item">
+          <span>休憩時間</span>
+          <select id="breakDurationSelect">
+            <option value="5" selected>5分</option>
+            <option value="10">10分</option>
+            <option value="15">15分</option>
+          </select>
+        </label>
+        <label class="setting-item">
+          <span>テーマ</span>
+          <select id="themeSelect">
+            <option value="light" selected>ライト</option>
+            <option value="dark">ダーク</option>
+            <option value="focus">フォーカス</option>
+          </select>
+        </label>
+      </div>
+      <div class="sound-row">
+        <label><input id="soundStartToggle" type="checkbox" checked> 開始音</label>
+        <label><input id="soundEndToggle" type="checkbox" checked> 終了音</label>
+        <label><input id="soundTickToggle" type="checkbox"> tick音</label>
+      </div>
+    </div>
+
     <!-- 今日の進捗カード -->
     <div class="progress-card">
       <p class="progress-card-title">今日の進捗</p>

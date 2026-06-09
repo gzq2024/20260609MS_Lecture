@@ -20,4 +20,30 @@ const DEFAULT_CONFIG = Object.freeze({
   sessionsUntilLongBreak: 4,
 });
 
-module.exports = { DEFAULT_CONFIG };
+const WORK_DURATION_OPTIONS = Object.freeze([15, 25, 35, 45]);
+const BREAK_DURATION_OPTIONS = Object.freeze([5, 10, 15]);
+const THEME_OPTIONS = Object.freeze(["light", "dark", "focus"]);
+
+const DEFAULT_SOUND_SETTINGS = Object.freeze({
+  start: true,
+  end: true,
+  tick: false,
+});
+
+function createConfig(workMinutes = 25, breakMinutes = 5) {
+  return {
+    ...DEFAULT_CONFIG,
+    workDuration: workMinutes * 60 * 1000,
+    shortBreakDuration: breakMinutes * 60 * 1000,
+    longBreakDuration: breakMinutes * 60 * 1000,
+  };
+}
+
+module.exports = {
+  DEFAULT_CONFIG,
+  WORK_DURATION_OPTIONS,
+  BREAK_DURATION_OPTIONS,
+  THEME_OPTIONS,
+  DEFAULT_SOUND_SETTINGS,
+  createConfig,
+};

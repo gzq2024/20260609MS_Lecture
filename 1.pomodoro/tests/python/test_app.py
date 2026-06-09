@@ -118,6 +118,31 @@ class TestIndexHtmlStructure:
         """集中時間要素に id="focusTime" が設定されている。"""
         assert 'id="focusTime"' in self.body
 
+    # --- カスタマイズ設定 ---
+    def test_work_duration_selector_exists(self):
+        """作業時間セレクタが含まれる。"""
+        assert 'id="workDurationSelect"' in self.body
+        assert "15分" in self.body
+        assert "45分" in self.body
+
+    def test_break_duration_selector_exists(self):
+        """休憩時間セレクタが含まれる。"""
+        assert 'id="breakDurationSelect"' in self.body
+        assert "10分" in self.body
+
+    def test_theme_selector_exists(self):
+        """テーマセレクタが含まれる。"""
+        assert 'id="themeSelect"' in self.body
+        assert "ライト" in self.body
+        assert "ダーク" in self.body
+        assert "フォーカス" in self.body
+
+    def test_sound_toggles_exist(self):
+        """サウンド設定トグルが含まれる。"""
+        assert 'id="soundStartToggle"' in self.body
+        assert 'id="soundEndToggle"' in self.body
+        assert 'id="soundTickToggle"' in self.body
+
     # --- 静的ファイル参照 ---
     def test_links_stylesheet(self):
         """CSSファイルへのリンクが含まれる。"""

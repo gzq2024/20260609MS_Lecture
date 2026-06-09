@@ -5,7 +5,11 @@
  * ボタンイベントとカウントダウンループを駆動する。
  */
 
-import { DEFAULT_CONFIG } from "./timer/config.js";
+import {
+  DEFAULT_CONFIG,
+  DEFAULT_SOUND_SETTINGS,
+  createConfig,
+} from "./timer/config.js";
 import { SystemClock } from "./timer/clock.js";
 import { IntervalScheduler } from "./timer/scheduler.js";
 import {
@@ -28,6 +32,12 @@ const elements = {
   resetBtn:     document.getElementById("resetBtn"),
   completedCount: document.getElementById("completedCount"),
   focusTime:     document.getElementById("focusTime"),
+  workDurationSelect: document.getElementById("workDurationSelect"),
+  breakDurationSelect: document.getElementById("breakDurationSelect"),
+  themeSelect: document.getElementById("themeSelect"),
+  soundStartToggle: document.getElementById("soundStartToggle"),
+  soundEndToggle: document.getElementById("soundEndToggle"),
+  soundTickToggle: document.getElementById("soundTickToggle"),
 };
 
 // ----------------------------------------------------------------
@@ -35,13 +45,22 @@ const elements = {
 // ----------------------------------------------------------------
 const clock     = new SystemClock();
 const scheduler = new IntervalScheduler();
-const config    = DEFAULT_CONFIG;
+let config      = DEFAULT_CONFIG;
 
 let state   = STATES.IDLE;
 let context = createInitialContext(config);
 
 // 完了イベント重複防止フラグ
 let _completed = false;
+let _lastTickSecond = null;
+let _currentWorkDuration = config.workDuration;
+
+let settings = {
+  workMinutes: 25,
+  breakMinutes: 5,
+  theme: "light",
+  sound: { ...DEFAULT_SOUND_SETTINGS },
+};
 
 // デバッグ設定
 const DEBUG = true;
@@ -49,6 +68,83 @@ const DEBUG = true;
 function debugLog(message, data = null) {
   if (DEBUG) {
     console.log(`[Pomodoro] ${message}`, data || "");
+  }
+
+  function playBeep(freq = 880, durationSec = 0.08, volume = 0.03) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const audio = new AudioCtx();
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.value = volume;
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start();
+      osc.stop(audio.currentTime + durationSec);
+      osc.onended = () => audio.close();
+    } catch (err) {
+      debugLog("Failed to play sound", err);
+    }
+  }
+
+  function applyTheme(theme) {
+    document.body.setAttribute("data-theme", theme);
+  }
+
+  function saveSettingsToStorage() {
+    try {
+      localStorage.setItem("pomodoroSettings", JSON.stringify(settings));
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
+  }
+
+  function loadSettingsFromStorage() {
+    try {
+      const raw = localStorage.getItem("pomodoroSettings");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      settings = {
+        ...settings,
+        ...parsed,
+        sound: {
+          ...settings.sound,
+          ...(parsed.sound || {}),
+        },
+      };
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  }
+
+  function applySettingsToState() {
+    config = createConfig(settings.workMinutes, settings.breakMinutes);
+    context = { ...context, config };
+    applyTheme(settings.theme);
+  }
+
+  function syncSettingsUI() {
+    if (elements.workDurationSelect) {
+      elements.workDurationSelect.value = String(settings.workMinutes);
+    }
+    if (elements.breakDurationSelect) {
+      elements.breakDurationSelect.value = String(settings.breakMinutes);
+    }
+    if (elements.themeSelect) {
+      elements.themeSelect.value = settings.theme;
+    }
+    if (elements.soundStartToggle) {
+      elements.soundStartToggle.checked = Boolean(settings.sound.start);
+    }
+    if (elements.soundEndToggle) {
+      elements.soundEndToggle.checked = Boolean(settings.sound.end);
+    }
+    if (elements.soundTickToggle) {
+      elements.soundTickToggle.checked = Boolean(settings.sound.tick);
+    }
   }
 }
 
@@ -209,6 +305,16 @@ function redraw() {
 function onTick() {
   const now       = clock.now();
   const remaining = calcRemaining(context.endAt, now, config);
+  const tickSecond = Math.ceil(remaining / 1000);
+
+  if (
+    settings.sound.tick &&
+    remaining > 0 &&
+    tickSecond !== _lastTickSecond
+  ) {
+    playBeep(660, 0.03, 0.02);
+  }
+  _lastTickSecond = tickSecond;
 
   redraw();
 
@@ -219,17 +325,21 @@ function onTick() {
 
     // WORK セッション完了時にAPI保存
     const wasWork = state === STATES.WORK;
-    const sessionStartedAt = context.endAt - config.workDuration;
+    const sessionStartedAt = context.endAt - _currentWorkDuration;
 
     ({ state, context } = nextState(state, EVENTS.COMPLETE, context, now));
     debugLog("Session completed", { wasWork, state });
     _completed = false;
+    _lastTickSecond = null;
 
     // 状態をlocalStorageに保存
     saveStateToStorage();
 
     // WORK セッション完了直後に保存
     if (wasWork) {
+      if (settings.sound.end) {
+        playBeep(520, 0.12, 0.04);
+      }
       saveSession("work", sessionStartedAt, now);
       loadStats();
     }
@@ -245,6 +355,7 @@ function onTick() {
 }
 
 function _startCountdown() {
+  _lastTickSecond = null;
   scheduler.start(onTick, 200);
 }
 
@@ -255,9 +366,14 @@ elements.startBtn.addEventListener("click", () => {
   if (state !== STATES.IDLE && state !== STATES.SHORT_BREAK && state !== STATES.LONG_BREAK) return;
 
   const now = clock.now();
+  _currentWorkDuration = config.workDuration;
   ({ state, context } = nextState(state, EVENTS.START, context, now));
   debugLog("START button clicked", { state });
   _completed = false;
+  _lastTickSecond = null;
+  if (settings.sound.start) {
+    playBeep(960, 0.08, 0.04);
+  }
   saveStateToStorage();
   _startCountdown();
   redraw();
@@ -266,15 +382,68 @@ elements.startBtn.addEventListener("click", () => {
 elements.resetBtn.addEventListener("click", () => {
   scheduler.stop();
   _completed = false;
+  _lastTickSecond = null;
   ({ state, context } = nextState(state, EVENTS.RESET, context, clock.now()));
   debugLog("RESET button clicked");
   clearStateFromStorage();
   redraw();
 });
 
+if (elements.workDurationSelect) {
+  elements.workDurationSelect.addEventListener("change", (event) => {
+    settings.workMinutes = Number(event.target.value) || 25;
+    applySettingsToState();
+    saveSettingsToStorage();
+    if (state === STATES.IDLE) redraw();
+  });
+}
+
+if (elements.breakDurationSelect) {
+  elements.breakDurationSelect.addEventListener("change", (event) => {
+    settings.breakMinutes = Number(event.target.value) || 5;
+    applySettingsToState();
+    saveSettingsToStorage();
+    if (state === STATES.IDLE) redraw();
+  });
+}
+
+if (elements.themeSelect) {
+  elements.themeSelect.addEventListener("change", (event) => {
+    settings.theme = event.target.value || "light";
+    applyTheme(settings.theme);
+    saveSettingsToStorage();
+  });
+}
+
+if (elements.soundStartToggle) {
+  elements.soundStartToggle.addEventListener("change", (event) => {
+    settings.sound.start = event.target.checked;
+    saveSettingsToStorage();
+  });
+}
+
+if (elements.soundEndToggle) {
+  elements.soundEndToggle.addEventListener("change", (event) => {
+    settings.sound.end = event.target.checked;
+    saveSettingsToStorage();
+  });
+}
+
+if (elements.soundTickToggle) {
+  elements.soundTickToggle.addEventListener("change", (event) => {
+    settings.sound.tick = event.target.checked;
+    saveSettingsToStorage();
+  });
+}
+
 // ----------------------------------------------------------------
 // 初期化と復元
 // ----------------------------------------------------------------
+
+// localStorageから設定を復元する
+loadSettingsFromStorage();
+applySettingsToState();
+syncSettingsUI();
 
 // localStorageから状態を復元する
 const savedAppState = loadStateFromStorage();
@@ -290,4 +459,3 @@ if (savedAppState) {
 
 redraw();
 loadStats();
-
