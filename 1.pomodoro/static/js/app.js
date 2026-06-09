@@ -20,6 +20,10 @@ import {
   calcRemaining,
 } from "./timer/state_machine.js";
 import { render, buildViewModel } from "./timer/presenter.js";
+import {
+  shouldAutoResumeCountdown,
+  shouldCompleteExpiredCountdown,
+} from "./timer/persistence.js";
 
 // ----------------------------------------------------------------
 // DOM参照
@@ -447,14 +451,30 @@ syncSettingsUI();
 
 // localStorageから状態を復元する
 const savedAppState = loadStateFromStorage();
-if (savedAppState) {
+if (savedAppState && savedAppState.context) {
+  const restoredCompletedSessions = Number.isInteger(savedAppState.context.completedSessions)
+    ? savedAppState.context.completedSessions
+    : 0;
+  const restoredEndAt = Number.isFinite(savedAppState.context.endAt)
+    ? savedAppState.context.endAt
+    : null;
+
   state = savedAppState.state;
   context = {
     ...context,
-    completedSessions: savedAppState.context.completedSessions,
-    endAt: savedAppState.context.endAt,
+    completedSessions: restoredCompletedSessions,
+    endAt: restoredEndAt,
   };
   debugLog("State restored from localStorage", { state });
+
+  const now = clock.now();
+  if (shouldAutoResumeCountdown(state, context.endAt, now)) {
+    debugLog("Resuming countdown from restored state");
+    _startCountdown();
+  } else if (shouldCompleteExpiredCountdown(state, context.endAt, now)) {
+    debugLog("Restored countdown already expired, completing");
+    onTick();
+  }
 }
 
 redraw();
