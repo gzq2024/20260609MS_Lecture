@@ -17,6 +17,24 @@
 
 // SVGリングの円周 (2 * π * r = 2 * π * 80 ≈ 502.65)
 const RING_CIRCUMFERENCE = 2 * Math.PI * 80;
+const BLUE_RGB = { r: 59, g: 130, b: 246 };
+const YELLOW_RGB = { r: 250, g: 204, b: 21 };
+const RED_RGB = { r: 239, g: 68, b: 68 };
+
+function interpolateChannel(from, to, ratio) {
+  return Math.round(from + (to - from) * ratio);
+}
+
+function colorByProgress(progressRatio) {
+  const clamped = Math.max(0, Math.min(1, progressRatio));
+  if (clamped >= 0.5) {
+    const ratio = (1 - clamped) / 0.5;
+    return `rgb(${interpolateChannel(BLUE_RGB.r, YELLOW_RGB.r, ratio)}, ${interpolateChannel(BLUE_RGB.g, YELLOW_RGB.g, ratio)}, ${interpolateChannel(BLUE_RGB.b, YELLOW_RGB.b, ratio)})`;
+  }
+
+  const ratio = (0.5 - clamped) / 0.5;
+  return `rgb(${interpolateChannel(YELLOW_RGB.r, RED_RGB.r, ratio)}, ${interpolateChannel(YELLOW_RGB.g, RED_RGB.g, ratio)}, ${interpolateChannel(YELLOW_RGB.b, RED_RGB.b, ratio)})`;
+}
 
 /**
  * 残り時間 (ms) を "MM:SS" 形式の文字列に変換する。
@@ -51,6 +69,8 @@ function render(viewModel, elements) {
   // SVGプログレスリング（progressRatio: 1.0=満タン、0.0=空）
   const offset = RING_CIRCUMFERENCE * (1 - viewModel.progressRatio);
   ringProgress.style.strokeDashoffset = offset;
+  ringProgress.style.stroke = colorByProgress(viewModel.progressRatio);
+  document.body.classList.toggle("focus-mode", viewModel.isFocusMode);
 
   // モードラベル
   modeLabel.textContent = viewModel.modeLabel;
@@ -93,7 +113,14 @@ function buildViewModel(state, remainingMs, totalDurationMs) {
     startBtnLabel: isBreak ? "休憩開始" : "開始",
     startBtnActive: isIdle || isBreak,
     resetBtnActive: state !== "idle",
+    isFocusMode: state === "work",
   };
 }
 
-module.exports = { render, buildViewModel, formatTime, RING_CIRCUMFERENCE };
+module.exports = {
+  render,
+  buildViewModel,
+  formatTime,
+  RING_CIRCUMFERENCE,
+  colorByProgress,
+};
