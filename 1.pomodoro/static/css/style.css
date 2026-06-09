@@ -139,7 +139,7 @@ body.focus-mode::after {
   /* 円周 = 2 * π * 80 ≈ 502.65 */
   stroke-dasharray: 502.65;
   stroke-dashoffset: 0; /* Phase 1: 満タン状態（25:00） */
-  transition: stroke-dashoffset 0.2s linear, stroke 0.5s linear;
+  transition: stroke-dashoffset 0.5s linear, stroke 0.5s linear;
 }
 
 /* 残り時間テキスト */

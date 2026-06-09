@@ -29,11 +29,17 @@ function colorByProgress(progressRatio) {
   const clamped = Math.max(0, Math.min(1, progressRatio));
   if (clamped >= 0.5) {
     const ratio = (1 - clamped) / 0.5;
-    return `rgb(${interpolateChannel(BLUE_RGB.r, YELLOW_RGB.r, ratio)}, ${interpolateChannel(BLUE_RGB.g, YELLOW_RGB.g, ratio)}, ${interpolateChannel(BLUE_RGB.b, YELLOW_RGB.b, ratio)})`;
+    const r = interpolateChannel(BLUE_RGB.r, YELLOW_RGB.r, ratio);
+    const g = interpolateChannel(BLUE_RGB.g, YELLOW_RGB.g, ratio);
+    const b = interpolateChannel(BLUE_RGB.b, YELLOW_RGB.b, ratio);
+    return `rgb(${r}, ${g}, ${b})`;
   }
 
   const ratio = (0.5 - clamped) / 0.5;
-  return `rgb(${interpolateChannel(YELLOW_RGB.r, RED_RGB.r, ratio)}, ${interpolateChannel(YELLOW_RGB.g, RED_RGB.g, ratio)}, ${interpolateChannel(YELLOW_RGB.b, RED_RGB.b, ratio)})`;
+  const r = interpolateChannel(YELLOW_RGB.r, RED_RGB.r, ratio);
+  const g = interpolateChannel(YELLOW_RGB.g, RED_RGB.g, ratio);
+  const b = interpolateChannel(YELLOW_RGB.b, RED_RGB.b, ratio);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 /**
