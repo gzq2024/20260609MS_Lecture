@@ -16,6 +16,18 @@ body {
   font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
 }
 
+body[data-theme="light"] {
+  background-color: #7b6fd0;
+}
+
+body[data-theme="dark"] {
+  background-color: #1f1f28;
+}
+
+body[data-theme="focus"] {
+  background-color: #111218;
+}
+
 /* ============================================================
    ウィンドウカード
    ============================================================ */
@@ -206,6 +218,107 @@ body {
 .stat-label {
   font-size: 12px;
   color: #999;
+}
+
+/* ============================================================
+   設定カード
+   ============================================================ */
+.settings-card {
+  background: #fafafe;
+  border-radius: 12px;
+  margin: 0 16px 14px;
+  padding: 12px 14px;
+}
+
+.settings-title {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #555;
+}
+
+.setting-item select {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: #fff;
+  color: #333;
+}
+
+.sound-row {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+body[data-theme="dark"] .window-card {
+  background: #262733;
+  color: #ececf4;
+}
+
+body[data-theme="dark"] .window-header {
+  border-bottom-color: #3a3b4a;
+}
+
+body[data-theme="dark"] .window-title,
+body[data-theme="dark"] .timer-text,
+body[data-theme="dark"] .stat-value {
+  color: #f4f4fa;
+}
+
+body[data-theme="dark"] .progress-card,
+body[data-theme="dark"] .settings-card {
+  background: #313344;
+}
+
+body[data-theme="dark"] .btn-outline {
+  color: #ddd;
+  border-color: #666;
+}
+
+body[data-theme="dark"] .btn-outline:hover {
+  background-color: #393b4d;
+}
+
+body[data-theme="focus"] .window-header,
+body[data-theme="focus"] .progress-card,
+body[data-theme="focus"] .settings-card {
+  display: none;
+}
+
+body[data-theme="focus"] .window-card {
+  width: 280px;
+  padding-top: 20px;
+  background: transparent;
+  box-shadow: none;
+}
+
+body[data-theme="focus"] .mode-label {
+  color: #b8bfd9;
+}
+
+body[data-theme="focus"] .timer-text {
+  color: #e7ecff;
+}
+
+body[data-theme="focus"] .ring-track {
+  stroke: #2c2f43;
 }
 
 /* ============================================================
