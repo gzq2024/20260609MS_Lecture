@@ -22,7 +22,7 @@ const BASE_CONFIG = {
 
 /**
  * 設定オブジェクトを生成する（テスト時の注入用）。
- * @param {Partial<PomodoroConfig>} overrides
+ * @param {{workDuration?: number, shortBreakDuration?: number, longBreakDuration?: number, sessionsUntilLongBreak?: number}} overrides
  * @returns {PomodoroConfig}
  */
 function createConfig(overrides = {}) {
