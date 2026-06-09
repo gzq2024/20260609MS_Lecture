@@ -150,13 +150,15 @@ async function saveSession(sessionType, startedAt, endedAt) {
     
     if (!response.ok) {
       console.error(`Failed to save session: ${response.status}`);
-      return;
+      return false;
     }
     
     const result = await response.json();
     debugLog("Session saved successfully", result);
+    return true;
   } catch (err) {
     console.error("Error saving session:", err);
+    return false;
   }
 }
 
@@ -180,7 +182,8 @@ async function loadStats() {
       elements.completedCount.textContent = data.completed || 0;
     }
     if (elements.focusTime) {
-      elements.focusTime.textContent = data.focus_minutes || 0;
+      const focusMinutes = Number(data.focus_minutes) || 0;
+      elements.focusTime.textContent = `${focusMinutes}分`;
     }
   } catch (err) {
     console.error("Error loading stats:", err);
@@ -194,6 +197,12 @@ async function loadStats() {
 function currentDuration() {
   if (state === STATES.SHORT_BREAK) return config.shortBreakDuration;
   if (state === STATES.LONG_BREAK)  return config.longBreakDuration;
+  return config.workDuration;
+}
+
+function durationForState(sessionState) {
+  if (sessionState === STATES.SHORT_BREAK) return config.shortBreakDuration;
+  if (sessionState === STATES.LONG_BREAK)  return config.longBreakDuration;
   return config.workDuration;
 }
 
@@ -217,22 +226,21 @@ function onTick() {
     _completed = true;
     scheduler.stop();
 
-    // WORK セッション完了時にAPI保存
-    const wasWork = state === STATES.WORK;
-    const sessionStartedAt = context.endAt - config.workDuration;
+    // セッション完了時にAPI保存
+    const completedSessionType = state;
+    const sessionDuration = durationForState(completedSessionType);
+    const sessionStartedAt = (context.endAt ?? now) - sessionDuration;
 
     ({ state, context } = nextState(state, EVENTS.COMPLETE, context, now));
-    debugLog("Session completed", { wasWork, state });
+    debugLog("Session completed", { completedSessionType, state });
     _completed = false;
 
     // 状態をlocalStorageに保存
     saveStateToStorage();
 
-    // WORK セッション完了直後に保存
-    if (wasWork) {
-      saveSession("work", sessionStartedAt, now);
-      loadStats();
-    }
+    // セッション完了直後に保存し、統計を更新
+    saveSession(completedSessionType, sessionStartedAt, now)
+      .finally(() => loadStats());
 
     // 休憩/作業への自動遷移後に再描画
     redraw();
@@ -290,4 +298,3 @@ if (savedAppState) {
 
 redraw();
 loadStats();
-
