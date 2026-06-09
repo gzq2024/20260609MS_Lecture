@@ -223,10 +223,14 @@ async function loadGamificationStats() {
     const monthly = data.monthly || {};
 
     if (elements.weeklyMeta) {
-      elements.weeklyMeta.textContent = `${weekly.completion_rate || 0}% / ${weekly.average_focus_minutes || 0}分`;
+      const weeklyRate = Number(weekly.completion_rate || 0).toFixed(1);
+      const weeklyAvgFocus = Number(weekly.average_focus_minutes || 0).toFixed(1);
+      elements.weeklyMeta.textContent = `${weeklyRate}% / ${weeklyAvgFocus}分`;
     }
     if (elements.monthlyMeta) {
-      elements.monthlyMeta.textContent = `${monthly.completion_rate || 0}% / ${monthly.average_focus_minutes || 0}分`;
+      const monthlyRate = Number(monthly.completion_rate || 0).toFixed(1);
+      const monthlyAvgFocus = Number(monthly.average_focus_minutes || 0).toFixed(1);
+      elements.monthlyMeta.textContent = `${monthlyRate}% / ${monthlyAvgFocus}分`;
     }
     if (elements.weeklyRateBar) {
       elements.weeklyRateBar.style.width = `${Math.max(0, Math.min(100, weekly.completion_rate || 0))}%`;

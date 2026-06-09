@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timezone
 from models import Session
@@ -72,7 +73,8 @@ def create_session():
         return jsonify(saved.to_dict()), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        app.logger.exception("Failed to create session")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 # ----------------------------------------------------------------
@@ -93,7 +95,8 @@ def get_today_stats():
         stats = repo.get_today_stats()
         return jsonify(stats), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        app.logger.exception("Failed to load today stats")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 # ----------------------------------------------------------------
@@ -108,9 +111,10 @@ def get_gamification_stats():
         stats = repo.get_gamification_stats()
         return jsonify(stats), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        app.logger.exception("Failed to load gamification stats")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
+    debug_mode = os.environ.get("FLASK_DEBUG", "").lower() in ("1", "true", "yes")
+    app.run(debug=debug_mode, port=5000)

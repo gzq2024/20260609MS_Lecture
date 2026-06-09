@@ -4,7 +4,7 @@ tests/python/test_api.py — Flask API テスト
 POST /api/sessions と GET /api/stats/today の正常系・異常系・境界値をテストする。
 """
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import sys
 import os
 
@@ -334,8 +334,40 @@ class TestGetGamificationStats:
         assert data["streak_days"] == 0
         assert data["badges"] == []
 
+    def test_weekly_completion_rate_uses_weekly_sessions_only(self, client):
+        today = datetime.now(timezone.utc)
+
+        # 今週内: work + break = 完了率 50%
+        app_module.repo.save(Session(
+            session_type="work",
+            started_at=0,
+            ended_at=1500000,
+            focus_minutes=25,
+            created_at=today,
+        ))
+        app_module.repo.save(Session(
+            session_type="short_break",
+            started_at=1500000,
+            ended_at=1800000,
+            focus_minutes=5,
+            created_at=today,
+        ))
+
+        # 先月データ（全体比率を歪めるため）
+        app_module.repo.save(Session(
+            session_type="work",
+            started_at=0,
+            ended_at=1500000,
+            focus_minutes=25,
+            created_at=today - timedelta(days=35),
+        ))
+
+        res = client.get("/api/stats/gamification")
+        data = res.get_json()
+        assert data["weekly"]["completion_rate"] == 50.0
+
     def test_unlocks_streak_and_weekly_badges(self, client):
-        today = datetime.now()
+        today = datetime.now(timezone.utc)
 
         # 3日連続を作る
         for day_offset in range(3):
