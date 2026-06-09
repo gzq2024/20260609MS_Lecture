@@ -16,6 +16,10 @@ import {
   calcRemaining,
 } from "./timer/state_machine.js";
 import { render, buildViewModel } from "./timer/presenter.js";
+import {
+  shouldAutoResumeCountdown,
+  shouldCompleteExpiredCountdown,
+} from "./timer/persistence.js";
 
 // ----------------------------------------------------------------
 // DOM参照
@@ -278,7 +282,7 @@ elements.resetBtn.addEventListener("click", () => {
 
 // localStorageから状態を復元する
 const savedAppState = loadStateFromStorage();
-if (savedAppState) {
+if (savedAppState && savedAppState.context) {
   state = savedAppState.state;
   context = {
     ...context,
@@ -286,8 +290,16 @@ if (savedAppState) {
     endAt: savedAppState.context.endAt,
   };
   debugLog("State restored from localStorage", { state });
+
+  const now = clock.now();
+  if (shouldAutoResumeCountdown(state, context.endAt, now)) {
+    debugLog("Resuming countdown from restored state");
+    _startCountdown();
+  } else if (shouldCompleteExpiredCountdown(state, context.endAt, now)) {
+    debugLog("Restored countdown already expired, completing");
+    onTick();
+  }
 }
 
 redraw();
 loadStats();
-
