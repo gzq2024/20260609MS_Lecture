@@ -61,6 +61,27 @@ class SqliteSessionRepository(SessionRepository):
         """セッションを保存"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
+
+        # 重複保存防止: 同じセッション内容が既に存在する場合は既存レコードを返す
+        cursor.execute("""
+            SELECT id, session_type, started_at, ended_at, focus_minutes, created_at
+            FROM session
+            WHERE session_type = ?
+              AND started_at = ?
+              AND ended_at = ?
+              AND focus_minutes = ?
+            LIMIT 1
+        """, (
+            session.session_type,
+            session.started_at,
+            session.ended_at,
+            session.focus_minutes,
+        ))
+        existing = cursor.fetchone()
+        if existing:
+            conn.close()
+            return self._row_to_session(existing)
+
         cursor.execute("""
             INSERT INTO session (session_type, started_at, ended_at, focus_minutes, created_at)
             VALUES (?, ?, ?, ?, ?)
@@ -146,6 +167,15 @@ class InMemorySessionRepository(SessionRepository):
 
     def save(self, session: Session) -> Session:
         """セッションを保存"""
+        for existing in self.sessions.values():
+            if (
+                existing.session_type == session.session_type
+                and existing.started_at == session.started_at
+                and existing.ended_at == session.ended_at
+                and existing.focus_minutes == session.focus_minutes
+            ):
+                return existing
+
         session.id = self.next_id
         self.sessions[self.next_id] = session
         self.next_id += 1

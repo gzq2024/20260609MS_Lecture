@@ -165,6 +165,26 @@ class TestCreateSession:
         assert res.status_code == 201
         assert res.get_json()["focus_minutes"] == 0
 
+    def test_prevents_duplicate_session_save(self, client):
+        """正常系: 同一セッションの重複保存を防止"""
+        payload = {
+            "session_type": "work",
+            "started_at": 0,
+            "ended_at": 1500000,
+            "focus_minutes": 25,
+        }
+
+        first = client.post("/api/sessions", json=payload)
+        second = client.post("/api/sessions", json=payload)
+
+        assert first.status_code == 201
+        assert second.status_code == 201
+        assert first.get_json()["id"] == second.get_json()["id"]
+
+        stats = client.get("/api/stats/today").get_json()
+        assert stats["completed"] == 1
+        assert stats["focus_minutes"] == 25
+
 
 # ================================================================
 # GET /api/stats/today — 当日集計
