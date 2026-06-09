@@ -69,6 +69,37 @@
       </div>
     </div>
 
+    <div class="progress-card gamification-card">
+      <p class="progress-card-title">ゲーミフィケーション</p>
+      <div class="progress-stats">
+        <div class="stat">
+          <span class="stat-value" id="xpValue">0</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value stat-highlight" id="levelValue">Lv.1</span>
+          <span class="stat-label">レベル</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="streakValue">0日</span>
+          <span class="stat-label">ストリーク</span>
+        </div>
+      </div>
+      <div class="badge-list" id="badgeList">未達成</div>
+      <div class="mini-graphs">
+        <div class="mini-graph">
+          <p class="mini-graph-title">週間 完了率/平均集中</p>
+          <p class="mini-graph-meta" id="weeklyMeta">0% / 0分</p>
+          <div class="bar-track"><div class="bar-fill" id="weeklyRateBar"></div></div>
+        </div>
+        <div class="mini-graph">
+          <p class="mini-graph-title">月間 完了率/平均集中</p>
+          <p class="mini-graph-meta" id="monthlyMeta">0% / 0分</p>
+          <div class="bar-track"><div class="bar-fill" id="monthlyRateBar"></div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>

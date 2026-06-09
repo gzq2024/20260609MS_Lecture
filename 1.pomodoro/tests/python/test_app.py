@@ -118,6 +118,21 @@ class TestIndexHtmlStructure:
         """集中時間要素に id="focusTime" が設定されている。"""
         assert 'id="focusTime"' in self.body
 
+    def test_contains_gamification_title(self):
+        """ゲーミフィケーションカードのタイトルが含まれる。"""
+        assert "ゲーミフィケーション" in self.body
+
+    def test_gamification_ids_exist(self):
+        """ゲーミフィケーション表示要素のidが設定されている。"""
+        assert 'id="xpValue"' in self.body
+        assert 'id="levelValue"' in self.body
+        assert 'id="streakValue"' in self.body
+        assert 'id="badgeList"' in self.body
+        assert 'id="weeklyMeta"' in self.body
+        assert 'id="monthlyMeta"' in self.body
+        assert 'id="weeklyRateBar"' in self.body
+        assert 'id="monthlyRateBar"' in self.body
+
     # --- 静的ファイル参照 ---
     def test_links_stylesheet(self):
         """CSSファイルへのリンクが含まれる。"""

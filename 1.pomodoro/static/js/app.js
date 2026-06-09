@@ -28,6 +28,14 @@ const elements = {
   resetBtn:     document.getElementById("resetBtn"),
   completedCount: document.getElementById("completedCount"),
   focusTime:     document.getElementById("focusTime"),
+  xpValue: document.getElementById("xpValue"),
+  levelValue: document.getElementById("levelValue"),
+  streakValue: document.getElementById("streakValue"),
+  badgeList: document.getElementById("badgeList"),
+  weeklyMeta: document.getElementById("weeklyMeta"),
+  monthlyMeta: document.getElementById("monthlyMeta"),
+  weeklyRateBar: document.getElementById("weeklyRateBar"),
+  monthlyRateBar: document.getElementById("monthlyRateBar"),
 };
 
 // ----------------------------------------------------------------
@@ -187,6 +195,54 @@ async function loadStats() {
   }
 }
 
+/**
+ * ゲーミフィケーション統計をサーバーから取得してUIを更新
+ */
+async function loadGamificationStats() {
+  try {
+    debugLog("Loading gamification stats from /api/stats/gamification");
+    const response = await fetch("/api/stats/gamification");
+
+    if (!response.ok) {
+      console.error(`Failed to load gamification stats: ${response.status}`);
+      return;
+    }
+
+    const data = await response.json();
+    debugLog("Gamification stats loaded", data);
+
+    if (elements.xpValue) elements.xpValue.textContent = data.xp || 0;
+    if (elements.levelValue) elements.levelValue.textContent = `Lv.${data.level || 1}`;
+    if (elements.streakValue) elements.streakValue.textContent = `${data.streak_days || 0}日`;
+    if (elements.badgeList) {
+      const badges = data.badges || [];
+      elements.badgeList.textContent = badges.length ? badges.join(" / ") : "未達成";
+    }
+
+    const weekly = data.weekly || {};
+    const monthly = data.monthly || {};
+
+    if (elements.weeklyMeta) {
+      const weeklyRate = Number(weekly.completion_rate || 0).toFixed(1);
+      const weeklyAvgFocus = Number(weekly.average_focus_minutes || 0).toFixed(1);
+      elements.weeklyMeta.textContent = `${weeklyRate}% / ${weeklyAvgFocus}分`;
+    }
+    if (elements.monthlyMeta) {
+      const monthlyRate = Number(monthly.completion_rate || 0).toFixed(1);
+      const monthlyAvgFocus = Number(monthly.average_focus_minutes || 0).toFixed(1);
+      elements.monthlyMeta.textContent = `${monthlyRate}% / ${monthlyAvgFocus}分`;
+    }
+    if (elements.weeklyRateBar) {
+      elements.weeklyRateBar.style.width = `${Math.max(0, Math.min(100, weekly.completion_rate || 0))}%`;
+    }
+    if (elements.monthlyRateBar) {
+      elements.monthlyRateBar.style.width = `${Math.max(0, Math.min(100, monthly.completion_rate || 0))}%`;
+    }
+  } catch (err) {
+    console.error("Error loading gamification stats:", err);
+  }
+}
+
 
 // ----------------------------------------------------------------
 // 描画ヘルパー
@@ -232,6 +288,7 @@ function onTick() {
     if (wasWork) {
       saveSession("work", sessionStartedAt, now);
       loadStats();
+      loadGamificationStats();
     }
 
     // 休憩/作業への自動遷移後に再描画
@@ -290,4 +347,4 @@ if (savedAppState) {
 
 redraw();
 loadStats();
-
+loadGamificationStats();
