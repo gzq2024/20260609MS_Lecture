@@ -359,6 +359,14 @@ function _startCountdown() {
   scheduler.start(onTick, 200);
 }
 
+function isRunningState(currentState) {
+  return (
+    currentState === STATES.WORK ||
+    currentState === STATES.SHORT_BREAK ||
+    currentState === STATES.LONG_BREAK
+  );
+}
+
 // ----------------------------------------------------------------
 // ボタンイベント
 // ----------------------------------------------------------------
@@ -455,6 +463,15 @@ if (savedAppState) {
     endAt: savedAppState.context.endAt,
   };
   debugLog("State restored from localStorage", { state });
+}
+
+if (isRunningState(state) && context.endAt !== null) {
+  const remaining = calcRemaining(context.endAt, clock.now(), config);
+  if (remaining === 0) {
+    onTick();
+  } else {
+    _startCountdown();
+  }
 }
 
 redraw();

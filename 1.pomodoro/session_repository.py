@@ -54,6 +54,10 @@ class SqliteSessionRepository(SessionRepository):
                 created_at TEXT NOT NULL
             )
         """)
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_session_dedup
+            ON session (session_type, started_at, ended_at, focus_minutes)
+        """)
         conn.commit()
         conn.close()
 
@@ -62,7 +66,7 @@ class SqliteSessionRepository(SessionRepository):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO session (session_type, started_at, ended_at, focus_minutes, created_at)
+            INSERT OR IGNORE INTO session (session_type, started_at, ended_at, focus_minutes, created_at)
             VALUES (?, ?, ?, ?, ?)
         """, (
             session.session_type,
@@ -72,11 +76,25 @@ class SqliteSessionRepository(SessionRepository):
             session.created_at.isoformat(),
         ))
         conn.commit()
-        session_id = cursor.lastrowid
+
+        cursor.execute("""
+            SELECT id, session_type, started_at, ended_at, focus_minutes, created_at
+            FROM session
+            WHERE session_type = ? AND started_at = ? AND ended_at = ? AND focus_minutes = ?
+            ORDER BY id ASC
+            LIMIT 1
+        """, (
+            session.session_type,
+            session.started_at,
+            session.ended_at,
+            session.focus_minutes,
+        ))
+        row = cursor.fetchone()
         conn.close()
 
-        session.id = session_id
-        return session
+        if not row:
+            raise RuntimeError("Failed to save session")
+        return self._row_to_session(row)
 
     def get_by_id(self, session_id: int) -> Session:
         """IDでセッションを取得"""
@@ -146,6 +164,15 @@ class InMemorySessionRepository(SessionRepository):
 
     def save(self, session: Session) -> Session:
         """セッションを保存"""
+        for existing in self.sessions.values():
+            if (
+                existing.session_type == session.session_type
+                and existing.started_at == session.started_at
+                and existing.ended_at == session.ended_at
+                and existing.focus_minutes == session.focus_minutes
+            ):
+                return existing
+
         session.id = self.next_id
         self.sessions[self.next_id] = session
         self.next_id += 1
