@@ -42,14 +42,29 @@ function formatTime(remainingMs) {
  * @param {Element} elements.startBtn
  * @param {Element} elements.resetBtn
  */
+/**
+ * 描画対象のDOM要素セットを解決する。
+ * elements が渡された場合はそれを優先し、未指定時はIDでDOMから取得する。
+ *
+ * @param {Object|undefined} elements
+ * @returns {Object}
+ */
 function resolveElements(elements) {
   if (elements) return elements;
+  const getRequiredElement = (id) => {
+    const element = document.getElementById(id);
+    if (!element) {
+      throw new Error(`Required element #${id} not found`);
+    }
+    return element;
+  };
+
   return {
-    timerText: document.getElementById("timerText"),
-    ringProgress: document.getElementById("ringProgress"),
-    modeLabel: document.getElementById("modeLabel"),
-    startBtn: document.getElementById("startBtn"),
-    resetBtn: document.getElementById("resetBtn"),
+    timerText: getRequiredElement("timerText"),
+    ringProgress: getRequiredElement("ringProgress"),
+    modeLabel: getRequiredElement("modeLabel"),
+    startBtn: getRequiredElement("startBtn"),
+    resetBtn: getRequiredElement("resetBtn"),
   };
 }
 

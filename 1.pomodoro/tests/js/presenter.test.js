@@ -201,5 +201,7 @@ describe("render", () => {
     expect(document.getElementById("modeLabel").textContent).toBe("作業中");
     expect(document.getElementById("startBtn").disabled).toBe(false);
     expect(document.getElementById("resetBtn").disabled).toBe(true);
+    expect(parseFloat(document.getElementById("ringProgress").style.strokeDashoffset))
+      .toBeCloseTo(RING_CIRCUMFERENCE * 0.1, 1);
   });
 });
