@@ -283,11 +283,18 @@ elements.resetBtn.addEventListener("click", () => {
 // localStorageから状態を復元する
 const savedAppState = loadStateFromStorage();
 if (savedAppState && savedAppState.context) {
+  const restoredCompletedSessions = Number.isInteger(savedAppState.context.completedSessions)
+    ? savedAppState.context.completedSessions
+    : 0;
+  const restoredEndAt = Number.isFinite(savedAppState.context.endAt)
+    ? savedAppState.context.endAt
+    : null;
+
   state = savedAppState.state;
   context = {
     ...context,
-    completedSessions: savedAppState.context.completedSessions,
-    endAt: savedAppState.context.endAt,
+    completedSessions: restoredCompletedSessions,
+    endAt: restoredEndAt,
   };
   debugLog("State restored from localStorage", { state });
 
