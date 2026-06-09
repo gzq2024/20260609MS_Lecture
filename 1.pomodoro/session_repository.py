@@ -4,7 +4,7 @@ session_repository.py — セッション永続化レイヤー
 Repository パターンで本番実装（SQLite）とテスト実装（InMemory）を切り替え可能にする。
 """
 import sqlite3
-from datetime import datetime, date
+from datetime import datetime, date, timedelta, timezone
 from abc import ABC, abstractmethod
 from models import Session
 
@@ -30,6 +30,11 @@ class SessionRepository(ABC):
     @abstractmethod
     def get_today_stats(self) -> dict:
         """当日の統計（完了件数、集中時間）を返す"""
+        pass
+
+    @abstractmethod
+    def get_gamification_stats(self) -> dict:
+        """ゲーミフィケーション統計を返す"""
         pass
 
 
@@ -122,6 +127,24 @@ class SqliteSessionRepository(SessionRepository):
             "focus_minutes": focus_minutes,
         }
 
+    def get_all_sessions(self) -> list:
+        """全セッション一覧"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, session_type, started_at, ended_at, focus_minutes, created_at
+            FROM session
+            ORDER BY created_at DESC
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+        return [self._row_to_session(row) for row in rows]
+
+    def get_gamification_stats(self) -> dict:
+        """XP/レベル/ストリーク/バッジ/週次月次統計"""
+        sessions = self.get_all_sessions()
+        return _build_gamification_stats(sessions)
+
     @staticmethod
     def _row_to_session(row) -> Session:
         """SQLite行をセッションオブジェクトに変換"""
@@ -156,8 +179,9 @@ class InMemorySessionRepository(SessionRepository):
         return self.sessions.get(session_id)
 
     def get_today_sessions(self) -> list:
-        """当日のセッション（この実装では全セッション）"""
-        return list(self.sessions.values())
+        """当日のセッション"""
+        today = datetime.now(timezone.utc).date()
+        return [s for s in self.sessions.values() if s.created_at.date() == today]
 
     def get_today_stats(self) -> dict:
         """統計情報"""
@@ -169,3 +193,101 @@ class InMemorySessionRepository(SessionRepository):
             "completed": completed_count,
             "focus_minutes": focus_minutes,
         }
+
+    def get_gamification_stats(self) -> dict:
+        """XP/レベル/ストリーク/バッジ/週次月次統計"""
+        sessions = list(self.sessions.values())
+        return _build_gamification_stats(sessions)
+
+
+def _build_gamification_stats(sessions: list) -> dict:
+    """セッション一覧からゲーミフィケーション情報を構築する。"""
+    work_sessions = [s for s in sessions if s.session_type == "work"]
+    total_work_sessions = len(work_sessions)
+    total_focus_minutes = sum(s.focus_minutes for s in work_sessions)
+    total_sessions = len(sessions)
+
+    xp = total_work_sessions * 10 + total_focus_minutes
+    level = max(1, (xp // 100) + 1)
+    next_level_xp = level * 100
+
+    today = datetime.now(timezone.utc).date()
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+
+    # ストリーク（今日を含む連続日数）
+    work_dates = sorted({s.created_at.date() for s in work_sessions}, reverse=True)
+    streak = 0
+    cursor_date = today
+    for d in work_dates:
+        if d == cursor_date:
+            streak += 1
+            cursor_date = cursor_date - timedelta(days=1)
+        elif d > cursor_date:
+            continue
+        else:
+            break
+
+    weekly_work = [s for s in work_sessions if s.created_at.date() >= week_start]
+    monthly_work = [s for s in work_sessions if s.created_at.date() >= month_start]
+
+    badges = []
+    if total_work_sessions >= 1:
+        badges.append("初回完了")
+    if streak >= 3:
+        badges.append("3日連続")
+    if len(weekly_work) >= 10:
+        badges.append("今週10回完了")
+
+    avg_focus_minutes = round(total_focus_minutes / total_work_sessions, 1) if total_work_sessions else 0
+    completion_rate = round((total_work_sessions / total_sessions) * 100, 1) if total_sessions else 0
+
+    weekly_graph = []
+    for i in range(7):
+        day = week_start + timedelta(days=i)
+        day_sessions = [s for s in work_sessions if s.created_at.date() == day]
+        weekly_graph.append({
+            "date": day.isoformat(),
+            "label": day.strftime("%m/%d"),
+            "completed": len(day_sessions),
+            "focus_minutes": sum(s.focus_minutes for s in day_sessions),
+        })
+
+    if today.month == 12:
+        next_month_start = today.replace(year=today.year + 1, month=1, day=1)
+    else:
+        next_month_start = today.replace(month=today.month + 1, day=1)
+    days_in_month = (next_month_start - month_start).days
+
+    monthly_graph = []
+    for i in range(days_in_month):
+        day = month_start + timedelta(days=i)
+        day_sessions = [s for s in work_sessions if s.created_at.date() == day]
+        monthly_graph.append({
+            "date": day.isoformat(),
+            "label": day.strftime("%d"),
+            "completed": len(day_sessions),
+            "focus_minutes": sum(s.focus_minutes for s in day_sessions),
+        })
+
+    return {
+        "xp": xp,
+        "level": level,
+        "next_level_xp": next_level_xp,
+        "streak_days": streak,
+        "badges": badges,
+        "weekly": {
+            "completed": len(weekly_work),
+            "focus_minutes": sum(s.focus_minutes for s in weekly_work),
+            "completion_rate": completion_rate,
+            "average_focus_minutes": avg_focus_minutes,
+            "graph": weekly_graph,
+        },
+        "monthly": {
+            "completed": len(monthly_work),
+            "focus_minutes": sum(s.focus_minutes for s in monthly_work),
+            "completion_rate": completion_rate,
+            "average_focus_minutes": avg_focus_minutes,
+            "graph": monthly_graph,
+        },
+    }

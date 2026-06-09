@@ -4,7 +4,7 @@ tests/python/test_api.py — Flask API テスト
 POST /api/sessions と GET /api/stats/today の正常系・異常系・境界値をテストする。
 """
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 import os
 
@@ -12,6 +12,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from app import app as flask_app
+import app as app_module
 from models import Session
 from session_repository import InMemorySessionRepository
 
@@ -319,3 +320,48 @@ class TestIntegration:
         final_stats = res4.get_json()
         assert final_stats["completed"] == 2
         assert final_stats["focus_minutes"] == 25  # work のみ
+
+
+class TestGetGamificationStats:
+    """ゲーミフィケーション統計API"""
+
+    def test_returns_empty_gamification_stats_initially(self, client):
+        res = client.get("/api/stats/gamification")
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["xp"] == 0
+        assert data["level"] == 1
+        assert data["streak_days"] == 0
+        assert data["badges"] == []
+
+    def test_unlocks_streak_and_weekly_badges(self, client):
+        today = datetime.now()
+
+        # 3日連続を作る
+        for day_offset in range(3):
+            app_module.repo.save(Session(
+                session_type="work",
+                started_at=0,
+                ended_at=1500000,
+                focus_minutes=25,
+                created_at=today - timedelta(days=day_offset),
+            ))
+
+        # 今週10回完了を作る（追加で8回）
+        for _ in range(8):
+            app_module.repo.save(Session(
+                session_type="work",
+                started_at=0,
+                ended_at=1500000,
+                focus_minutes=20,
+                created_at=today,
+            ))
+
+        res = client.get("/api/stats/gamification")
+        data = res.get_json()
+
+        assert data["streak_days"] >= 3
+        assert "3日連続" in data["badges"]
+        assert "今週10回完了" in data["badges"]
+        assert data["xp"] > 0
+        assert data["weekly"]["completed"] >= 10

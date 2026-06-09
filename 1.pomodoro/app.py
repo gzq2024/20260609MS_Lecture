@@ -96,7 +96,21 @@ def get_today_stats():
         return jsonify({"error": str(e)}), 500
 
 
+# ----------------------------------------------------------------
+# API: GET /api/stats/gamification — XP/バッジ/ストリーク/週月統計
+# ----------------------------------------------------------------
+@app.route("/api/stats/gamification", methods=["GET"])
+def get_gamification_stats():
+    """
+    ゲーミフィケーション統計を返す。
+    """
+    try:
+        stats = repo.get_gamification_stats()
+        return jsonify(stats), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
 
