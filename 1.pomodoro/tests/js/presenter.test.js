@@ -204,4 +204,8 @@ describe("render", () => {
     expect(parseFloat(document.getElementById("ringProgress").style.strokeDashoffset))
       .toBeCloseTo(RING_CIRCUMFERENCE * 0.1, 1);
   });
+
+  test("elementsに不正な型を渡すとTypeErrorになる", () => {
+    expect(() => render({ timerText: "25:00" }, "invalid")).toThrow(TypeError);
+  });
 });

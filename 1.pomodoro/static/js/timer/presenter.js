@@ -31,18 +31,6 @@ function formatTime(remainingMs) {
 }
 
 /**
- * viewModel をDOMに反映する。
- * 渡した要素オブジェクトに対して操作するため、テスト時はモックDOMを渡せる。
- *
- * @param {Object} viewModel
- * @param {Object} elements  DOMエレメントの参照マップ
- * @param {Element} elements.timerText
- * @param {Element} elements.ringProgress
- * @param {Element} elements.modeLabel
- * @param {Element} elements.startBtn
- * @param {Element} elements.resetBtn
- */
-/**
  * 描画対象のDOM要素セットを解決する。
  * elements が渡された場合はそれを優先し、未指定時はIDでDOMから取得する。
  *
@@ -50,7 +38,12 @@ function formatTime(remainingMs) {
  * @returns {Object}
  */
 function resolveElements(elements) {
-  if (elements) return elements;
+  if (elements !== undefined) {
+    if (elements && typeof elements === "object" && !Array.isArray(elements)) {
+      return elements;
+    }
+    throw new TypeError("elements must be an object when provided");
+  }
   const getRequiredElement = (id) => {
     const element = document.getElementById(id);
     if (!element) {
@@ -68,6 +61,18 @@ function resolveElements(elements) {
   };
 }
 
+/**
+ * viewModel をDOMに反映する。
+ * elements は省略可能で、未指定時は既定のIDからDOM要素を解決する。
+ *
+ * @param {Object} viewModel
+ * @param {Object|undefined} [elements]  DOMエレメントの参照マップ（省略可）
+ * @param {Element} elements.timerText
+ * @param {Element} elements.ringProgress
+ * @param {Element} elements.modeLabel
+ * @param {Element} elements.startBtn
+ * @param {Element} elements.resetBtn
+ */
 function render(viewModel, elements) {
   const { timerText, ringProgress, modeLabel, startBtn, resetBtn } = resolveElements(elements);
 
