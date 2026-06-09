@@ -42,7 +42,7 @@ function resolveElements(elements) {
     if (elements && typeof elements === "object" && !Array.isArray(elements)) {
       return elements;
     }
-    throw new TypeError("elements must be an object when provided");
+    throw new TypeError("elements must be a non-null object when provided");
   }
   const getRequiredElement = (id) => {
     const element = document.getElementById(id);

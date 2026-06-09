@@ -205,7 +205,12 @@ describe("render", () => {
       .toBeCloseTo(RING_CIRCUMFERENCE * 0.1, 1);
   });
 
-  test("elementsに不正な型を渡すとTypeErrorになる", () => {
-    expect(() => render({ timerText: "25:00" }, "invalid")).toThrow(TypeError);
+  test.each([
+    "invalid",
+    null,
+    [],
+    123,
+  ])("elementsに不正な型(%p)を渡すとTypeErrorになる", (invalidElements) => {
+    expect(() => render({ timerText: "25:00" }, invalidElements)).toThrow(TypeError);
   });
 });
