@@ -13,11 +13,25 @@
  */
 
 /** デフォルト設定（本番用） */
-const DEFAULT_CONFIG = Object.freeze({
+const BASE_CONFIG = {
   workDuration: 25 * 60 * 1000,       // 25分
   shortBreakDuration: 5 * 60 * 1000,  // 5分
   longBreakDuration: 15 * 60 * 1000,  // 15分
   sessionsUntilLongBreak: 4,
-});
+};
 
-module.exports = { DEFAULT_CONFIG };
+/**
+ * 設定オブジェクトを生成する（テスト時の注入用）。
+ * @param {{workDuration?: number, shortBreakDuration?: number, longBreakDuration?: number, sessionsUntilLongBreak?: number}} overrides
+ * @returns {PomodoroConfig}
+ */
+function createConfig(overrides = {}) {
+  return Object.freeze({
+    ...BASE_CONFIG,
+    ...overrides,
+  });
+}
+
+const DEFAULT_CONFIG = createConfig();
+
+module.exports = { DEFAULT_CONFIG, createConfig };
