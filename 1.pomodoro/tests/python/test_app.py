@@ -139,13 +139,12 @@ class TestIndexHtmlStructure:
 
 class TestDirectoryStructure:
     """Phase 1-1 のディレクトリ構成を確認する。"""
+    BASE_DIR = Path(__file__).resolve().parents[2]
 
     def test_templates_directory_exists(self):
-        base_dir = Path(__file__).resolve().parents[2]
-        assert (base_dir / "templates").is_dir()
+        assert (self.BASE_DIR / "templates").is_dir()
 
     def test_static_directories_exist(self):
-        base_dir = Path(__file__).resolve().parents[2]
-        assert (base_dir / "static").is_dir()
-        assert (base_dir / "static" / "css").is_dir()
-        assert (base_dir / "static" / "js").is_dir()
+        assert (self.BASE_DIR / "static").is_dir()
+        assert (self.BASE_DIR / "static" / "css").is_dir()
+        assert (self.BASE_DIR / "static" / "js").is_dir()
