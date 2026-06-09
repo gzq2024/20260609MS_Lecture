@@ -211,10 +211,61 @@ body {
 /* ============================================================
    レスポンシブ（モバイル）
    ============================================================ */
-@media (max-width: 360px) {
+@media (max-width: 480px) {
+  body {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
   .window-card {
     width: 100%;
+    max-width: 420px;
+    padding-bottom: 20px;
+  }
+
+  .mode-label {
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .timer-ring-wrapper,
+  .timer-ring {
+    width: 184px;
+    height: 184px;
+  }
+
+  .timer-text {
+    font-size: 34px;
+  }
+
+  .btn-row {
+    padding: 0 16px;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .progress-card {
+    margin: 0 12px;
+    padding: 12px 16px;
+  }
+
+  .progress-stats {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .window-card {
     border-radius: 0;
     min-height: 100vh;
+  }
+
+  body {
+    padding: 0;
   }
 }
