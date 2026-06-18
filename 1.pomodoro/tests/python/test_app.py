@@ -7,6 +7,7 @@ Phase 1 — Flask エントリポイントのユニットテスト
 - 静的ファイル参照（CSS / JS）
 """
 import pytest
+from pathlib import Path
 from app import app as flask_app
 
 
@@ -159,3 +160,16 @@ class TestIndexHtmlStructure:
     def test_lang_is_ja(self):
         """htmlタグのlang属性が日本語に設定されている。"""
         assert 'lang="ja"' in self.body
+
+
+class TestDirectoryStructure:
+    """Phase 1-1 のディレクトリ構成を確認する。"""
+    BASE_DIR = Path(__file__).resolve().parents[2]
+
+    def test_templates_directory_exists(self):
+        assert (self.BASE_DIR / "templates").is_dir()
+
+    def test_static_directories_exist(self):
+        assert (self.BASE_DIR / "static").is_dir()
+        assert (self.BASE_DIR / "static" / "css").is_dir()
+        assert (self.BASE_DIR / "static" / "js").is_dir()
