@@ -8,6 +8,7 @@ const {
   buildViewModel,
   formatTime,
   RING_CIRCUMFERENCE,
+  colorByProgress,
 } = require("../../static/js/timer/presenter");
 
 // ----------------------------------------------------------------
@@ -97,6 +98,30 @@ describe("buildViewModel", () => {
     const vm = buildViewModel("work", WORK_DURATION / 2, WORK_DURATION);
     expect(vm.resetBtnActive).toBe(true);
   });
+
+  test("work状態でisFocusModeがtrue", () => {
+    const vm = buildViewModel("work", WORK_DURATION / 2, WORK_DURATION);
+    expect(vm.isFocusMode).toBe(true);
+  });
+
+  test("idle状態でisFocusModeがfalse", () => {
+    const vm = buildViewModel("idle", WORK_DURATION, WORK_DURATION);
+    expect(vm.isFocusMode).toBe(false);
+  });
+});
+
+describe("colorByProgress", () => {
+  test("残量100%は青系", () => {
+    expect(colorByProgress(1)).toBe("rgb(59, 130, 246)");
+  });
+
+  test("残量50%は黄系", () => {
+    expect(colorByProgress(0.5)).toBe("rgb(250, 204, 21)");
+  });
+
+  test("残量0%は赤系", () => {
+    expect(colorByProgress(0)).toBe("rgb(239, 68, 68)");
+  });
 });
 
 // ----------------------------------------------------------------
@@ -177,5 +202,21 @@ describe("render", () => {
              startBtnLabel: "開始", startBtnActive: false, resetBtnActive: true }, els);
     expect(parseFloat(els.ringProgress.style.strokeDashoffset))
       .toBeCloseTo(RING_CIRCUMFERENCE / 2, 1);
+  });
+
+  test("work状態表示時にfocus-modeクラスが付与される", () => {
+    document.body.className = "";
+    const els = makeElements();
+    render({ timerText: "25:00", progressRatio: 1, modeLabel: "作業中",
+             startBtnLabel: "開始", startBtnActive: true, resetBtnActive: false, isFocusMode: true }, els);
+    expect(document.body.classList.contains("focus-mode")).toBe(true);
+  });
+
+  test("focus-mode不要時はbodyクラスが解除される", () => {
+    document.body.className = "focus-mode";
+    const els = makeElements();
+    render({ timerText: "25:00", progressRatio: 1, modeLabel: "作業中",
+             startBtnLabel: "開始", startBtnActive: true, resetBtnActive: false, isFocusMode: false }, els);
+    expect(document.body.classList.contains("focus-mode")).toBe(false);
   });
 });
